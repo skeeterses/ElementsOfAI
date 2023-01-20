@@ -12,3 +12,8 @@ chess pieces on the board are stored in a hash map.
 1/9/2023 -- I plan to put the Baroque Chess game into its own repository later on.  Right now, I will
 use this directory for typing out the examples in Java and use the Java JgraphT library instead of 
 writing out the graph search algorithms manually.
+
+1/20/2023 -- I'm close to implementing the trivial case of the robot search program of having the robot
+find a block in a text based map and picking up the block and putting it on top of another.  The goal
+of the program is to use the BFS search algorithm to plan the robotic arm movement when there are multiple
+blocks to be moved.
