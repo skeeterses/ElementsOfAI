@@ -53,10 +53,8 @@ public class RobotSearch {
              // to simulate the moves of the robot.
              // The second testMoves method is for testing the testMoves
              // method by using a test string before actually writing the
-             // graph traversal methods.
-             void testMoves() {
-               this.testMoves(Moves);
-             }
+             // graph traversal methods.             
+             
              void testMoves(String inputMoves)
              {
                 int currentX, currentY, stringPosition;
@@ -64,9 +62,9 @@ public class RobotSearch {
                 boolean holdingObject = false;
                 boolean gripClosed = false;
                 char heldObject = '.';
-                StringBuffer[] Screen = new StringBuffer[Map.length];
+                StringBuilder[] Screen = new StringBuilder[Map.length];
                 for (int i = 0; i < Map.length; i++)
-                    Screen[i] = new StringBuffer(Map[i]);
+                    Screen[i] = new StringBuilder(Map[i]);
                 
                 currentX = robotX * 2;
                 currentY = robotY;
@@ -194,9 +192,10 @@ public class RobotSearch {
         
         }
             
-        void putOn(char block1, char block2)
+        StringBuilder putOn(char block1, char block2)
         {
             Node block1Node, block2Node;
+            StringBuilder movesResult = new StringBuilder(".............................");
             block1Node = new Node(0,0,' ');
             block2Node = new Node(0, 0, ' ');
             /*
@@ -223,9 +222,6 @@ public class RobotSearch {
             BFSShortestPath<Node, DefaultWeightedEdge> bfsAlg =
             new BFSShortestPath<>(graph);
            
-            DijkstraShortestPath<Node, DefaultWeightedEdge> dijkstraAlg =
-            new DijkstraShortestPath<>(graph);
-            
             System.out.println(block1Node);
             System.out.println(robotNode);
             
@@ -242,16 +238,83 @@ public class RobotSearch {
             System.out.println(graph.containsVertex(robotNode));
             System.out.println(block1Node);
             System.out.println(graph.containsVertex(block1Node));
-
             
-            GraphPath<Node, DefaultWeightedEdge> path = bfsAlg.getPath( robotNode, block1Node);
+            //GraphPath<Node, DefaultWeightedEdge> path = bfsAlg.getPath( robotNode, block1Node);
+            Node targetNode = new Node(0,0,' ');
+            targetNode = block1Node;
+            targetNode.y--;            
+            
+            GraphPath<Node, DefaultWeightedEdge> path = bfsAlg.getPath(robotNode, targetNode);
             System.out.println(path);                                      
+            // Now to actually create the string representing the moves.
+            List<Node> block1Path = path.getVertexList();
+            ListIterator<Node> itr = block1Path.listIterator();
+            Node temp1Node = new Node(0, 0, ' ');            
+            Node temp2Node = new Node(0, 0, ' ');
+            temp1Node = block1Path.get(0);
+            int currentElement = 0;
+            while (itr.hasNext())
+            {
+                int x1, y1, x2, y2;               
                 
+                //temp2Node = block1Path.get(currentElement+1);
+                temp2Node = itr.next();
+                if ((temp2Node.x - temp1Node.x) == 1)
+                    movesResult.insert(currentElement, 'R');
+                    //movesResult.append('R');
+                if ((temp2Node.x - temp1Node.x) == -1)
+                    movesResult.insert(currentElement, 'L');
+                    //movesResult.append('L');
+                if ((temp2Node.y - temp1Node.y) == 1) // The origin is top left
+                    movesResult.insert(currentElement, 'D');
+                    //movesResult.append('D');
+                if ((temp2Node.y - temp1Node.y) == -1)
+                    movesResult.insert(currentElement, 'U');
+                    //movesResult.append('U');
+                temp1Node = temp2Node;
+                currentElement++;
+            }
+            currentElement--;
+            movesResult.insert(currentElement, 'C');
+            
+            // Now to put the block1 on top of block2
+            Node targetNode2 = block2Node;
+            targetNode2.y--;
+            path = bfsAlg.getPath(targetNode, targetNode2);                       
+            block1Path = path.getVertexList();
+            itr = block1Path.listIterator();
+            temp1Node = block1Path.get(0);
+            
+            while (itr.hasNext())
+            {
+                int x1, y1, x2, y2;               
+                
+                //temp2Node = block1Path.get(currentElement+1);
+                temp2Node = itr.next();
+                if ((temp2Node.x - temp1Node.x) == 1)
+                    movesResult.insert(currentElement-1, 'R');
+                    //movesResult.append('R');
+                if ((temp2Node.x - temp1Node.x) == -1)
+                    movesResult.insert(currentElement-1, 'L');
+                    //movesResult.append('L');
+                if ((temp2Node.y - temp1Node.y) == 1) // The origin is top left
+                    movesResult.insert(currentElement-1, 'D');
+                    //movesResult.append('D');
+                if ((temp2Node.y - temp1Node.y) == -1)
+                    movesResult.insert(currentElement-1, 'U');
+                    //movesResult.append('U');
+                temp1Node = temp2Node;
+                currentElement++;
+            }
+            movesResult.insert(currentElement-2, 'O');
+            
+            System.out.println(movesResult);
+            return movesResult;
         }
 private
         int robotX, robotY;
         String[] Map;
-        String Moves;
+      
         Graph<Node, DefaultWeightedEdge> graph;
         Node[][] nodes;        
         Node robotNode;
@@ -284,8 +347,9 @@ private
         String testString[] = searchString1;
         Robot testRobot1 = new Robot(testString);
         String testMoves1 = "LLDDDDCUUUULLLDDDOUUU";
+        StringBuilder testMovesResult = new StringBuilder();
         testRobot1.testMoves(testMoves1);
-        testRobot1.putOn('B', 'A');
-        
+        testMovesResult = testRobot1.putOn('B', 'A');
+       
 }
 }
