@@ -17,3 +17,7 @@ writing out the graph search algorithms manually.
 find a block in a text based map and picking up the block and putting it on top of another.  The goal
 of the program is to use the BFS search algorithm to plan the robotic arm movement when there are multiple
 blocks to be moved.
+
+2/4/2023 -- In the robot search program, work on debugging the recursive clearTop function.  The program places
+block B on top of A but the values in the waste column get clobbered when clearing the excess blocks off the top of
+A.
