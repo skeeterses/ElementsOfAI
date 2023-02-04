@@ -55,7 +55,7 @@ public class RobotSearch {
              // method by using a test string before actually writing the
              // graph traversal methods.             
              
-             void testMoves(String inputMoves)
+             void testMoves(StringBuilder inputMoves)
              {
                 int currentX, currentY, stringPosition;
                 // stringPosition is current position in inputMoves;
@@ -143,6 +143,7 @@ public class RobotSearch {
         Robot(String[] inputMap)
         {
             Map = inputMap;
+            robotMoved = false;            
             for (int i = 0; i < inputMap.length; i++)
                 for (int j =0; j< inputMap[0].length()-2; j++)
                 {
@@ -158,6 +159,9 @@ public class RobotSearch {
         
         graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
         nodes = new Node[Map[0].length()][Map.length];        
+        usedColumn = new boolean[nodes[0].length];
+        for(boolean bool:usedColumn)
+            bool = false;
         
         // Create the nodes.
         for (int i = 0; i < Map.length; i++)
@@ -191,17 +195,156 @@ public class RobotSearch {
             }
         
         }
+        
+        // This will be a recursive method that calls clearTop(Node)
+        // if there's something on top of what the method is clearing.
+        //
+        // ClearTop applied to C -- B  results in clearTop C calling clearTop B
+        //                          C  before moving C      
+        //                          A
+        //                     ###########
+        //                                    
+        StringBuilder clearTop(Node inputNode)
+        {
+           StringBuilder result = new StringBuilder("..............................");
+           StringBuilder clearTopResult1 = new StringBuilder();
+           Node targetNode1 = new Node(0,0,' ');
+           Node targetNode2 = new Node(0,0,' ');
+           targetNode1 = nodes[inputNode.x*2][inputNode.y-1];
+           int block1X, block1Y, block2X, block2Y;
+           block1X = 0;
+           block1Y = 0;
+           block2X = 0;
+           block2Y = 0;
+           
+           if (Character.isLetter(targetNode1.c))
+               clearTopResult1 = clearTop(targetNode1);
+           
+           block1X = inputNode.x;
+           block1Y = inputNode.y;
+           
+            BFSShortestPath<Node, DefaultWeightedEdge> bfsAlg =
+            new BFSShortestPath<>(graph);
+            GraphPath<Node, DefaultWeightedEdge> path = bfsAlg.getPath(robotNode, targetNode1);
+            System.out.println(path);
             
+           List<Node> block1Path = path.getVertexList();
+            ListIterator<Node> itr = block1Path.listIterator();
+            Node temp1Node = new Node(0, 0, ' ');            
+            Node temp2Node = new Node(0, 0, ' ');
+       
+            temp1Node = itr.next();            
+            int currentElement = 0;
+            while (itr.hasNext())
+            {
+                temp2Node = itr.next();
+                
+                if ((temp2Node.x - temp1Node.x) == 1)
+                    result.insert(currentElement, 'R');
+                    //movesResult.append('R');
+                if ((temp2Node.x - temp1Node.x) == -1)
+                    result.insert(currentElement, 'L');
+                    //movesResult.append('L');
+                if ((temp2Node.y - temp1Node.y) == 1) // The origin is top left
+                    result.insert(currentElement, 'D');
+                    //movesResult.append('D');
+                if ((temp2Node.y - temp1Node.y) == -1)
+                    result.insert(currentElement, 'U');
+                    //movesResult.append('U');
+                temp1Node = temp2Node;
+                currentElement++;
+            }
+            //currentElement--;
+            result.insert(currentElement, 'C');
+            currentElement++;
+            
+           int wasteColumn = 0;
+           for (int i = 0; i < usedColumn.length; i++)
+           {
+               if (usedColumn[i] == false)
+               {
+                   wasteColumn = i;
+                   break;
+               }               
+           }
+           
+           // Now to find the exact position
+           // The LZ cannot be the sky
+           for (int i = nodes[wasteColumn].length-1; i > 0; i--)
+           {
+               if (!Character.isLetter(nodes[wasteColumn][i].c))
+               {
+                   targetNode2 = nodes[wasteColumn][i-1];
+                   block2Y = i;
+                   block2X = wasteColumn;
+                   break;
+               }               
+           }
+           
+            path = bfsAlg.getPath(targetNode1, targetNode2);                       
+            block1Path = path.getVertexList();
+            itr = block1Path.listIterator();
+            temp1Node = itr.next();
+            
+            while (itr.hasNext())
+            {
+                int x1, y1, x2, y2;               
+                       
+                temp2Node = itr.next();
+                if ((temp2Node.x - temp1Node.x) == 1)
+                    result.insert(currentElement, 'R');
+                    //movesResult.append('R');
+                if ((temp2Node.x - temp1Node.x) == -1)
+                    result.insert(currentElement, 'L');
+                    //movesResult.append('L');
+                if ((temp2Node.y - temp1Node.y) == 1) // The origin is top left
+                    result.insert(currentElement, 'D');
+                    //movesResult.append('D');
+                if ((temp2Node.y - temp1Node.y) == -1)
+                    result.insert(currentElement, 'U');
+                    //movesResult.append('U');
+                temp1Node = temp2Node;
+                currentElement++;
+            }
+            result.insert(currentElement, 'O');
+            currentElement++;
+            //Update the nodes
+            nodes[block1X*2][block1Y].c = '.';
+            nodes[block2X*2][block2Y-1].c = inputNode.c;
+
+            //Now, get the remaining 'U's in and move the robotic arm back to
+            //the top.
+            for (int Y=targetNode2.y; Y>0; Y--)
+            {
+                result.insert(currentElement, 'U');
+                currentElement++;
+            }
+            // Set the robot position to the top of this column            
+            //robotNode = nodes[block2X * 2][block2Y];
+            robotNode = nodes[block2X * 2][0];
+            // Now to cut out the '.'s at the end.
+            result = result.delete(currentElement, result.length());
+           
+            if (clearTopResult1.length() > 0)
+                result = clearTopResult1.append(result);
+            
+           return result;
+        }
+        
         StringBuilder putOn(char block1, char block2)
         {
             Node block1Node, block2Node;
             // Later on, figure out a better way to solve the heap space exception than merely creating
             // one giant string.
             StringBuilder movesResult = new StringBuilder("..............................");
+            StringBuilder clearTopResult1, clearTopResult2;
+            clearTopResult1 = new StringBuilder();
+            clearTopResult2 = new StringBuilder();
             block1Node = new Node(0,0,' ');
             block2Node = new Node(0, 0, ' ');
             Node targetNode1 = new Node(0,0,' ');
             Node targetNode2 = new Node(0,0,' ');
+            Node dropNode = new Node(0, 0, ' ');
             
             int block1X, block1Y, block2X, block2Y;
             block1X = 0;
@@ -219,15 +362,26 @@ public class RobotSearch {
                     {
                         block1Node = nodes[i][j];                                            
                         targetNode1 = nodes[i][j-1];
+                        block1X = block1Node.x;
+                        block1Y = block1Node.y;
+                        usedColumn[i/2] = true;                        
                     }
                     if (nodes[i][j].c == block2)                                                               
                     {
                         block2Node = nodes[i][j];
+                        dropNode = nodes[i][j-1];
                         targetNode2 = nodes[i][j-2];
-                        
+                        block2X = block2Node.x;
+                        block2Y = block2Node.y;
+                        usedColumn[i/2] = true;
                     }
-                    if (nodes[i][j].c == 'R')
-                        robotNode = nodes[i][j];                                    
+                    if ( (nodes[i][j].c == 'R') && (robotMoved == false))
+                    { 
+                    // Any subsequent robot moves should use the robot coordinates
+                    // stored from previous calls of putOn or clear
+                        robotNode = nodes[i][j];
+                        robotMoved = true;
+                    }                                    
                 }
                 
             BFSShortestPath<Node, DefaultWeightedEdge> bfsAlg =
@@ -253,6 +407,15 @@ public class RobotSearch {
             System.out.println(graph.containsVertex(block1Node));                                                           
             */
             
+           //Here, check to see if targetNode1 is occupied and run the
+           // recursive clearTop method if there is.
+           if (Character.isLetter(targetNode1.c))           
+               clearTopResult1 = clearTop(targetNode1);                          
+           //Do another check above targetNode2 and run clearTop if there
+            // is an object above targetNode2.
+             if (Character.isLetter(dropNode.c))           
+               clearTopResult1 = clearTop(dropNode); 
+             
             GraphPath<Node, DefaultWeightedEdge> path = bfsAlg.getPath(robotNode, targetNode1);
             System.out.println(path);                                      
             // Now to actually create the string representing the moves.
@@ -286,8 +449,9 @@ public class RobotSearch {
             movesResult.insert(currentElement, 'C');
             currentElement++;
             
-            // Now to put the block1 on top of block2
-          
+            
+            
+            // Now to put the block1 on top of block2          
             path = bfsAlg.getPath(targetNode1, targetNode2);                       
             block1Path = path.getVertexList();
             itr = block1Path.listIterator();
@@ -315,6 +479,10 @@ public class RobotSearch {
             }
             movesResult.insert(currentElement, 'O');
             currentElement++;
+            //Update the nodes
+            nodes[block1X*2][block1Y].c = '.';
+            nodes[block2X*2][block2Y-1].c = block2;
+
             //Now, get the remaining 'U's in and move the robotic arm back to
             //the top.
             for (int Y=targetNode2.y; Y>0; Y--)
@@ -322,8 +490,15 @@ public class RobotSearch {
                 movesResult.insert(currentElement, 'U');
                 currentElement++;
             }
+            // Set the robot position to the top of this column            
+            robotNode = nodes[block2X * 2][block2Y];
             // Now to cut out the '.'s at the end.
             movesResult = movesResult.delete(currentElement, movesResult.length());
+            
+            if (clearTopResult1.length()> 0)
+                movesResult = clearTopResult1.append(movesResult);
+            if (clearTopResult2.length() > 0)
+                movesResult = clearTopResult2.append(movesResult);
             
             System.out.println(movesResult);
             return movesResult;
@@ -331,10 +506,13 @@ public class RobotSearch {
 private
         int robotX, robotY;
         String[] Map;
-      
+        boolean robotMoved;
+        
         Graph<Node, DefaultWeightedEdge> graph;
         Node[][] nodes;        
         Node robotNode;
+        boolean[] usedColumn; // The false columns will be used for clearing
+                              // the tops off of the blocks for putOn.        
     }
     
     public static void main(String[] args) {
@@ -361,12 +539,25 @@ private
       ". A . . . . . . . .",
       ". C . . B . . . . .",
     };
-        String testString[] = searchString1;
+    
+    String[] searchString3 =
+    { ". . . . . . R . . .",
+      ". . . . . . . . . .",
+      ". F . . . . . . . .",
+      ". D . . . . . . . .",
+      ". A . . . . . . . .",
+      ". C . . B . . . . .",
+    };
+            
+//        String testString[] = searchString1;
+        String testString[] = searchString3;
         Robot testRobot1 = new Robot(testString);
-        String testMoves1 = "LLDDDDCUUUULLLDDDOUUU";
+        StringBuilder testMoves1 = new StringBuilder("LLDDDDCUUUULLLDDDOUUU");
         StringBuilder testMovesResult = new StringBuilder();
-        testRobot1.testMoves(testMoves1);
+        //testRobot1.testMoves(testMoves1);       
         testMovesResult = testRobot1.putOn('B', 'A');
-       
+       testRobot1.testMoves(testMovesResult);
+        
+        
 }
 }
