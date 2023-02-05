@@ -102,8 +102,8 @@ public class RobotSearch {
                                 Screen[currentY+1].setCharAt(currentX-2, heldObject);                            
                                 Screen[currentY+1].setCharAt(currentX, '.');
                             }
-                                else
-                                Screen[currentY+1].setCharAt(currentX-2, heldObject);
+                                //else
+                                //Screen[currentY+1].setCharAt(currentX-2, heldObject);
                             currentX = currentX-2;
                             System.out.println("Left");
                             break;
@@ -115,8 +115,8 @@ public class RobotSearch {
                                 Screen[currentY+1].setCharAt(currentX+2, heldObject);                            
                                 Screen[currentY+1].setCharAt(currentX, '.');
                             }
-                                else
-                                Screen[currentY+1].setCharAt(currentX+2, heldObject);
+                                //else
+                                //Screen[currentY+1].setCharAt(currentX+2, heldObject);
                             currentX = currentX+2;
                             System.out.println("Right");
                             break;                                                        
@@ -216,6 +216,7 @@ public class RobotSearch {
            block1Y = 0;
            block2X = 0;
            block2Y = 0;
+           char block2C = inputNode.c;
            
            if (Character.isLetter(targetNode1.c))
                clearTopResult1 = clearTop(targetNode1);
@@ -310,8 +311,10 @@ public class RobotSearch {
             currentElement++;
             //Update the nodes
             nodes[block1X*2][block1Y].c = '.';
-            nodes[block2X*2][block2Y-1].c = inputNode.c;
-
+            //nodes[block2X*2][block2Y-1].c = inputNode.c;
+            //nodes[wasteColumn][block2Y].c = inputNode.c;
+            nodes[wasteColumn][block2Y].c = block2C;
+            
             //Now, get the remaining 'U's in and move the robotic arm back to
             //the top.
             for (int Y=targetNode2.y; Y>0; Y--)
@@ -321,7 +324,7 @@ public class RobotSearch {
             }
             // Set the robot position to the top of this column            
             //robotNode = nodes[block2X * 2][block2Y];
-            robotNode = nodes[block2X * 2][0];
+            robotNode = nodes[wasteColumn][0];
             // Now to cut out the '.'s at the end.
             result = result.delete(currentElement, result.length());
            
