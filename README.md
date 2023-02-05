@@ -21,3 +21,6 @@ blocks to be moved.
 2/4/2023 -- In the robot search program, work on debugging the recursive clearTop function.  The program places
 block B on top of A but the values in the waste column get clobbered when clearing the excess blocks off the top of
 A.
+2/5/2003 -- Robot search program is closed to being done.  I created an extra variable to hold the inputNode char value
+and that solved the problem of the waste column being clobbered.  The next step is to continue reading the blue book and get started on
+writing a Tic Tac Toe game in Java.
