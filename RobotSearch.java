@@ -102,8 +102,7 @@ public class RobotSearch {
                                 Screen[currentY+1].setCharAt(currentX-2, heldObject);                            
                                 Screen[currentY+1].setCharAt(currentX, '.');
                             }
-                                //else
-                                //Screen[currentY+1].setCharAt(currentX-2, heldObject);
+                                
                             currentX = currentX-2;
                             System.out.println("Left");
                             break;
@@ -115,8 +114,7 @@ public class RobotSearch {
                                 Screen[currentY+1].setCharAt(currentX+2, heldObject);                            
                                 Screen[currentY+1].setCharAt(currentX, '.');
                             }
-                                //else
-                                //Screen[currentY+1].setCharAt(currentX+2, heldObject);
+                                
                             currentX = currentX+2;
                             System.out.println("Right");
                             break;                                                        
